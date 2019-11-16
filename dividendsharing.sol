@@ -511,5 +511,5 @@ contract IncentiveToken is ERC20Detailed {
         return true;
     }
     
-}
+
 
