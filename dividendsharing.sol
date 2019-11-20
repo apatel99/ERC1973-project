@@ -512,4 +512,5 @@ contract IncentiveToken is ERC20Detailed {
         uint256 previousRoundMask = roundMask;
         participantMask[participant] = previousRoundMask;
         return true;
-    
+    	}
+}
