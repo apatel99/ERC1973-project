@@ -137,7 +137,7 @@ contract ShareToken is ERC20Detailed {
 
     mapping (address => mapping (address => uint256)) private _allowances;
 
-    uint256 private _totalSupply;
+    uint256 private _totalSupplyOfShareToken;
     
     mapping (address => uint256) public percentageShareOfToken;
     
@@ -150,28 +150,17 @@ contract ShareToken is ERC20Detailed {
     address public companyAddress;
     
     constructor(string memory name, string memory symbol, uint8 decimals,uint256 totalSupply) ERC20Detailed(name,symbol,decimals) public {
-        _totalSupply = totalSupply;
-        _balances[msg.sender] = _totalSupply;
+        _totalSupplyOfShareToken = totalSupply;
+        _balances[msg.sender] = _totalSupplyOfShareToken;
         companyAddress = msg.sender;
     }
 
 
     function totalSupply() public view returns (uint256) {
-        return _totalSupply;
+        return _totalSupplyOfShareToken;
     }
-
- 
-    function balanceOf(address account) public view returns (uint256) {
-        return _balances[account];
-    }
-
-
-    function transfer(address recipient, uint256 amount) public onlyCompany returns (bool) {
-        _transfer(msg.sender, recipient, amount);
-        return true;
-    }
-
-    function allowance(address owner, address spender) public view returns (uint256) {
+    
+     function allowance(address owner, address spender) public view returns (uint256) {
         return _allowances[owner][spender];
     }
 
@@ -193,6 +182,17 @@ contract ShareToken is ERC20Detailed {
         return true;
     }
 
+ 
+    function balanceOf(address account) public view returns (uint256) {
+        return _balances[account];
+    }
+
+
+    function transfer(address recipient, uint256 amount) public onlyCompany returns (bool) {
+        _transfer(msg.sender, recipient, amount);
+        return true;
+    }
+
 
     function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
         _approve(msg.sender, spender, _allowances[msg.sender][spender].sub(subtractedValue, "ERC20: decreased allowance below zero"));
@@ -202,6 +202,11 @@ contract ShareToken is ERC20Detailed {
     modifier onlyCompany(){
         require(msg.sender == companyAddress);
         _;
+    }
+    
+     function mint(address account, uint256 amount) public  returns (bool) {
+        _mint(account, amount);
+        return true;
     }
 
   
@@ -213,31 +218,31 @@ contract ShareToken is ERC20Detailed {
         _balances[recipient] = _balances[recipient].add(amount);
         
         
-        if(_totalSupply == 25){
+        if(_totalSupplyOfShareToken > 0 && _totalSupplyOfShareToken <=25){
             totalParticipantsOfShareToken = totalParticipantsOfShareToken + 25;
             percentageTotalOfShare = 400;
             //percentageTotalOfShare = percentageTotalOfShare.add(25);
             participantsOfShareToken[recipient] = true;
             
-        }else if(_totalSupply == 50){
+        }else if(_totalSupplyOfShareToken >25 && _totalSupplyOfShareToken <= 50){
             totalParticipantsOfShareToken = totalParticipantsOfShareToken + 25;
             percentageTotalOfShare = 200;
             //percentageTotal = percentageTotal.add(25);
             participantsOfShareToken[recipient] = true;
             
-        }else if(_totalSupply == 75){
+        }else if(_totalSupplyOfShareToken >50 && _totalSupplyOfShareToken <= 75){
             totalParticipantsOfShareToken = totalParticipantsOfShareToken + 25;
             percentageTotalOfShare = 133;
             //percentageTotal = percentageTotal.add(25);
             participantsOfShareToken[recipient] = true;
             
-        }else if(_totalSupply == 100){
+        }else if(_totalSupplyOfShareToken >75 && _totalSupplyOfShareToken <= 100){
             totalParticipantsOfShareToken = totalParticipantsOfShareToken + 25;
             percentageTotalOfShare = 100;
             //percentageTotal = percentageTotal.add(25);
             participantsOfShareToken[recipient] = true;
             
-        }else if(_totalSupply == 125){
+        }else if(_totalSupplyOfShareToken >100 && _totalSupplyOfShareToken <= 125){
             totalParticipantsOfShareToken = totalParticipantsOfShareToken + 25;
             percentageTotalOfShare =80;
             //percentageTotal = percentageTotal.add(25);
@@ -248,6 +253,16 @@ contract ShareToken is ERC20Detailed {
         emit Transfer(sender, recipient, amount);
     }
 
+       
+    function getParticipantState(address _address) public view returns (bool){
+        return participantsOfShareToken[_address];
+    }
+    
+    
+    function getPercentageShare(address _address) public view returns (uint256){
+        return percentageShareOfToken[_address];
+    }
+    
 
     function _approve(address owner, address spender, uint256 amount) internal {
         require(owner != address(0), "ERC20: approve from the zero address");
@@ -261,30 +276,17 @@ contract ShareToken is ERC20Detailed {
         require(account != address(0), "ERC20: mint to the zero address");
         require(account == companyAddress);
 
-        _totalSupply = _totalSupply.add(amount);
+        _totalSupplyOfShareToken = _totalSupplyOfShareToken.add(amount);
         _balances[account] = _balances[account].add(amount);
         emit Transfer(address(0), account, amount);
     }
     
     
-    function mint(address account, uint256 amount) public  returns (bool) {
-        _mint(account, amount);
-        return true;
-    }
-    
-    function getParticipantState(address _address) public view returns (bool){
-        return participantsOfShareToken[_address];
-    }
-    
-    function getPercentageShare(address _address) public view returns (uint256){
-        return percentageShareOfToken[_address];
-    }
-    
-    function getTotalParticipant() public view returns (uint256){
+    function getTotalParticipantOfShareToken() public view returns (uint256){
         return totalParticipantsOfShareToken;
     }
     
-    function getTotalPercentage() public view returns (uint256){
+    function getTotalPercentageShareToken() public view returns (uint256){
         return percentageTotalOfShare;
     }
 }
@@ -294,7 +296,7 @@ contract ShareToken is ERC20Detailed {
 contract IncentiveToken is ERC20Detailed {
     using SafeMath for uint256;
     
-    uint256 private _totalSupply;
+    uint256 private _totalSupplyOfIncentiveToken;
 
     mapping (address => uint256) private _balances;
 
@@ -314,8 +316,8 @@ contract IncentiveToken is ERC20Detailed {
     mapping(address => uint256) public participantMask;
     
     constructor(string memory name, string memory symbol, uint256 totalSupply,uint256 _tokensPerBlock, uint256 _blockFreezeInterval) ERC20Detailed(name,symbol,4) public {
-        _totalSupply = totalSupply;
-        _balances[msg.sender] = _totalSupply;
+        _totalSupplyOfIncentiveToken = totalSupply;
+        _balances[msg.sender] = _totalSupplyOfIncentiveToken;
 	    lastMintedBlockNumber = block.number;
         tokensPerBlock = _tokensPerBlock;
         blockFreezeInterval = _blockFreezeInterval;
@@ -329,18 +331,46 @@ contract IncentiveToken is ERC20Detailed {
     }
 
   
-    function totalSupply() public view returns (uint256) {
-        return _totalSupply;
+     function increaseAllowance(address spender, uint256 addedValue) public returns (bool) {
+        _approve(msg.sender, spender, _allowances[msg.sender][spender].add(addedValue));
+        return true;
+    }
+
+
+    function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
+        _approve(msg.sender, spender, _allowances[msg.sender][spender].sub(subtractedValue, "ERC20: decreased allowance below zero"));
+        return true;
     }
 
  
-    function balanceOf(address account) public view returns (uint256) {
-        return _balances[account];
+    function calculateRewards() private returns (uint256) {
+        uint256 playerMask = participantMask[msg.sender];
+        uint256 rewards = roundMask.sub(playerMask);
+        updateParticipantMask(msg.sender);
+        return rewards;
     }
 
+  
+    function mintTokens() private returns (bool) {
+        uint256 currentBlockNumber = block.number;
+        
+        //multiply to cover up % reward
+        uint256 tokenReleaseAmount = (currentBlockNumber.sub(lastMintedBlockNumber)).mul(tokensPerBlock);
+        if(contractInstance.getTotalPercentageShareToken() != 0){
+             tokenReleaseAmount = tokenReleaseAmount.mul(contractInstance.getTotalPercentageShareToken());     
+        }
+       
+        lastMintedBlockNumber = currentBlockNumber;
+        mint(tokencontractAddress, tokenReleaseAmount);
+        calculateTPP(tokenReleaseAmount);
+        return true;
+    }
+    
 
-    function transfer(address recipient, uint256 amount) public returns (bool) {
-        _transfer(address(this), recipient, amount);
+
+    function calculateTPP(uint256 tokens) private returns (bool) {
+        uint256 tpp = tokens.div(contractInstance.getTotalParticipantOfShareToken());
+        updateRoundMask(tpp);
         return true;
     }
 
@@ -363,15 +393,10 @@ contract IncentiveToken is ERC20Detailed {
     }
 
 
-    function increaseAllowance(address spender, uint256 addedValue) public returns (bool) {
-        _approve(msg.sender, spender, _allowances[msg.sender][spender].add(addedValue));
-        return true;
-    }
-
-
-    function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
-        _approve(msg.sender, spender, _allowances[msg.sender][spender].sub(subtractedValue, "ERC20: decreased allowance below zero"));
-        return true;
+ 
+    
+      function totalSupply() public view returns (uint256) {
+        return _totalSupplyOfIncentiveToken;
     }
 
 
@@ -388,7 +413,7 @@ contract IncentiveToken is ERC20Detailed {
     function _mint(address account, uint256 amount) internal {
         require(account != address(0), "ERC20: mint to the zero address");
 
-        _totalSupply = _totalSupply.add(amount);
+        _totalSupplyOfIncentiveToken = _totalSupplyOfIncentiveToken.add(amount);
         _balances[account] = _balances[account].add(amount);
         emit Transfer(address(0), account, amount);
     }
@@ -399,6 +424,15 @@ contract IncentiveToken is ERC20Detailed {
         return true;
     }
     
+       function balanceOf(address account) public view returns (uint256) {
+        return _balances[account];
+    }
+
+
+    function transfer(address recipient, uint256 amount) public returns (bool) {
+        _transfer(address(this), recipient, amount);
+        return true;
+    }
 
     function _approve(address owner, address spender, uint256 amount) internal {
         require(owner != address(0), "ERC20: approve from the zero address");
@@ -422,40 +456,6 @@ contract IncentiveToken is ERC20Detailed {
     }
 
 
-    function withdraw() external isAuthorized returns (bool) {
-        uint256 amount = calculateRewards();
-        require(amount >0);
-        uint256 totalSupplyOfShare = contractInstance.totalSupply();
-        uint256 percentageAmount;
-        if(totalSupplyOfShare == 25){
-            
-            percentageAmount = 400;
-            
-            
-        }else if(totalSupplyOfShare == 50){
-            
-            percentageAmount = 200;
-            
-            
-        }else if(totalSupplyOfShare == 75){
-            
-            percentageAmount = 133;
-            
-            
-        }else if(totalSupplyOfShare == 100){
-            
-            percentageAmount = 100;
-            
-            
-        }else if(totalSupplyOfShare == 125){
-            
-            percentageAmount =80;
-    
-            
-        }
-        transfer(msg.sender, amount.add(amount.mul(percentageAmount)));
-    }
-
     function readyToMint() public view returns (bool) {
         uint256 currentBlockNumber = block.number;
         uint256 lastBlockNumber = lastMintedBlockNumber;
@@ -466,37 +466,40 @@ contract IncentiveToken is ERC20Detailed {
     	}
     }
 
-
-    function calculateRewards() private returns (uint256) {
-        uint256 playerMask = participantMask[msg.sender];
-        uint256 rewards = roundMask.sub(playerMask);
-        updateParticipantMask(msg.sender);
-        return rewards;
-    }
-
-  
-    function mintTokens() private returns (bool) {
-        uint256 currentBlockNumber = block.number;
-        
-        //multiply to cover up % reward
-        uint256 tokenReleaseAmount = (currentBlockNumber.sub(lastMintedBlockNumber)).mul(tokensPerBlock);
-        if(contractInstance.getTotalPercentage() != 0){
-             tokenReleaseAmount = tokenReleaseAmount.mul(contractInstance.getTotalPercentage());     
-        }
-       
-        lastMintedBlockNumber = currentBlockNumber;
-        mint(tokencontractAddress, tokenReleaseAmount);
-        calculateTPP(tokenReleaseAmount);
-        return true;
-    }
+     function withdraw() external isAuthorized returns (bool) {
+        uint256 amount = calculateRewards();
+        require(amount >0);
+        uint256 totalSupplyOfShare = contractInstance.totalSupply();
+        uint256 percentageAmount;
+        if(totalSupplyOfShare >0 && totalSupplyOfShare <= 25){
+            
+            percentageAmount = 400;
+            
+            
+        }else if(totalSupplyOfShare > 25 && totalSupplyOfShare <= 50){
+            
+            percentageAmount = 200;
+            
+            
+        }else if(totalSupplyOfShare>50 && totalSupplyOfShare<= 75){
+            
+            percentageAmount = 133;
+            
+            
+        }else if(totalSupplyOfShare>75 && totalSupplyOfShare <= 100){
+            
+            percentageAmount = 100;
+            
+            
+        }else if(totalSupplyOfShare>100 && totalSupplyOfShare<= 125){
+            
+            percentageAmount =80;
     
-
-
-    function calculateTPP(uint256 tokens) private returns (bool) {
-        uint256 tpp = tokens.div(contractInstance.getTotalParticipant());
-        updateRoundMask(tpp);
-        return true;
+            
+        }
+        transfer(msg.sender, amount.add(amount.mul(percentageAmount)));
     }
+ 
 
 
     function updateRoundMask(uint256 tpp) private returns (bool) {
@@ -509,7 +512,4 @@ contract IncentiveToken is ERC20Detailed {
         uint256 previousRoundMask = roundMask;
         participantMask[participant] = previousRoundMask;
         return true;
-    }
     
-
-}
